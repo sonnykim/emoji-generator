@@ -31,7 +31,7 @@ def getEmojis(query, start):
             img_file = BytesIO()
             img.save(img_file, 'png')
             img_size = img_file.tell()
-            emojis.append(img_file)
+            emojis.append(img)
             #img.show()
             print 'url: %s size: %s orig_width: %s orig_height: %s' % (x['url'], img_size, i_width, i_height)
         except Exception as e:
@@ -89,10 +89,21 @@ def generateHtml(query, start):
     emojis = getEmojis(query, start) # emojis is a list of BytesIO image files
     html += '<table><tr>'
     for x in emojis:
+        x.thumbnail((128, 128), Image.ANTIALIAS)
+        img_file = BytesIO()
+        x.save(img_file, 'png')
+        img_size = img_file.tell()
         html += '<td><img src="'
         html += prefix
-        html += base64.b64encode(x.getvalue())
+        html += base64.b64encode(img_file.getvalue())
         html += '"></td>'
+        # output a smaller version of the img
+        x.thumbnail((32, 32), Image.ANTIALIAS)
+        img_mini_file = BytesIO()
+        x.save(img_mini_file, 'png')
+        html = html + '<td>emoji<br>sized<br><img src="' + prefix
+        html = html + base64.b64encode(img_mini_file.getvalue())
+        html = html + '"></td>'
     html += '</tr></table>'
     html += '<p><a href="'
     html = html + '/egen?query=' + original_query + '&start='
@@ -103,4 +114,4 @@ def generateHtml(query, start):
 # end def generateHtml
 
 # start server command
-run(host='localhost', port=8080, debug=True)
+run(host='0.0.0.0', port=8080, debug=True)
